@@ -1,0 +1,58 @@
+1 SELECT
+	id_loja,
+	date(data_hora) AS DATA,
+	count(*)
+FROM
+	tarefa
+WHERE
+	tipo = 1
+GROUP BY
+	date(data_hora), id_loja
+ORDER BY
+	DATA
+
+
+2 SELECT
+	id_loja, date(data_hora) AS DATA,
+	CASE
+		WHEN situacao = 1 THEN 'Aberta'
+		WHEN situacao = 2 THEN 'Atribuida'
+		WHEN situacao = 3 THEN 'Bloqueada'
+		WHEN situacao = 4 THEN 'Iniciada'
+		WHEN situacao = 5 THEN 'Finalizada'
+		WHEN situacao = 6 THEN 'Cancelada pelo sistema'
+		WHEN situacao = 7 THEN 'Anulada'
+		WHEN situacao = 8 THEN 'Esperando Tarefa'
+		WHEN situacao = 9 THEN 'Esperando Usuario'
+		WHEN situacao = 10 THEN 'Cancelada Usuario'
+	END AS situacao,
+	count(*)
+FROM
+	tarefa
+WHERE
+	tipo = 1
+GROUP BY
+	date(data_hora),
+	situacao, id_loja
+ORDER BY
+	DATA
+
+
+3 SELECT
+	date(data_hora) AS DATA,
+	u.nome,
+	count(*) AS qtd_tarefas,
+	count(DISTINCT r.id_produto) AS qtd_produtos
+FROM
+	tarefa t
+JOIN usuario u ON
+	t.id_usuario = u.id_usuario
+	AND t.id_loja = u.id_loja
+JOIN ressuprimento r ON
+    r.id_tarefa = t.id_tarefa
+    AND r.id_loja = t.id_loja
+GROUP BY
+	date(data_hora),
+	u.nome
+ORDER BY
+	DATA
