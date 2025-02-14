@@ -11,6 +11,7 @@ GROUP BY
 ORDER BY
 	DATA
 
+===========================================//================================================
 
 2 SELECT
 	id_loja, date(data_hora) AS DATA,
@@ -37,6 +38,7 @@ GROUP BY
 ORDER BY
 	DATA
 
+===========================================//================================================
 
 3 SELECT
 	date(data_hora) AS DATA,
@@ -56,3 +58,88 @@ GROUP BY
 	u.nome
 ORDER BY
 	DATA
+
+===========================================//================================================
+
+4 WITH filtro_tarefa AS (
+SELECT
+	t.id_loja,
+	t.id_tarefa,
+	t.situacao,
+	t.data_hora,
+	t.id_usuario,
+	t.tipo,
+	u.username,
+	u.nome,
+	h.data_hora AS historico_data_hora,
+	h.tipo AS historico_tipo,
+	h.id_usuario AS historico_id_usuario,
+	r.id_produto,
+	ROW_NUMBER() OVER (PARTITION BY t.tipo,
+	DATE(t.data_hora),
+	t.id_loja
+ORDER BY
+	t.data_hora ASC) AS primeira,
+	ROW_NUMBER() OVER (PARTITION BY t.tipo,
+	DATE(t.data_hora),
+	t.id_loja
+ORDER BY
+	t.data_hora DESC) AS ultima
+FROM
+	tarefa t
+LEFT JOIN usuario u 
+        ON
+	t.id_loja = u.id_loja
+	AND t.id_usuario = u.id_usuario
+LEFT JOIN historico h
+        ON
+	t.id_loja = h.id_loja
+	AND t.id_tarefa = h.id_tarefa
+LEFT JOIN ressuprimento r
+        ON
+	t.id_loja = r.id_loja
+	AND t.id_tarefa = r.id_tarefa
+)
+SELECT
+	id_loja,
+	id_tarefa,
+	situacao,
+	data_hora,
+	id_usuario,
+	tipo,
+	username,
+	nome,
+	historico_data_hora,
+	historico_tipo,
+	historico_id_usuario,
+	id_produto
+FROM
+	filtro_tarefa
+WHERE
+	primeira = 1
+UNION ALL
+SELECT
+	id_loja,
+	id_tarefa,
+	situacao,
+	data_hora,
+	id_usuario,
+	tipo,
+	username,
+	nome,
+	historico_data_hora,
+	historico_tipo,
+	historico_id_usuario,
+	id_produto
+FROM
+	filtro_tarefa
+WHERE
+	ultima = 1
+ORDER BY
+	tipo,
+	data_hora,
+	id_loja,
+	id_tarefa;
+
+
+
